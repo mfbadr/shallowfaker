@@ -1,20 +1,20 @@
  
 // Setup function runs once at the beginning
 const everyEmoji = ["✌","😂","😝","😁","😱","👉","🙌","🍻","🔥","🌈","☀","🎈","🌹","💄","🎀","⚽","🎾","🏁","😡","👿","🐻","🐶","🐬","🐟","🍀","👀","🚗","🍎","💝","💙","👌","❤","😍","😉","😓","😳","💪","💩","🍸","🔑","💖","🌟","🎉","🌺","🎶","👠","🏈","⚾","🏆","👽","💀","🐵","🐮","🐩","🐎","💣","👃","👂","🍓","💘","💜","👊","💋","😘","😜","😵","🙏","👋","🚽","💃","💎","🚀","🌙","🎁","⛄","🌊","⛵","🏀","🎱","💰","👶","👸","🐰","🐷","🐍","🐫","🔫","👄","🚲","🍉","💛","💚"];
+const badEmoji = ["😱","🍻","🔥","🎈","🌹","💄","🎀","😡","👿","😓","😳","💩","🍸","🔑","🌟",,"🎶","👠","👽","💀","💣","😵","🙏","👋","🚽","💎","🚀","🌙","🎱","💰","🐷","🐍","🔫","👄"];
 let video;
 let facemesh;
 let audio;
 let faces = []; 
-
-let leftEyeEmoji = {};
+let leftEyeEmoji = '👁';
 let leftEyeActive;
 let leftEyeSize;
 
-let rightEyeEmoji = {};
+let rightEyeEmoji = '👁';
 let rightEyeActive;
 let rightEyeSize;
 
-let mouthEmoji = {};
+let mouthEmoji = '👄';
 let mouthAcitve;
 let mouthSize;
 
@@ -26,10 +26,23 @@ let faceActive;
 let faceEmoji = {};
 let faceSize;
 
+let noseEmoji = '👃';
+
 let showVideo;
 
+
+const foodChoices =  ['🍕', '🍔']
+
+
+let foods = [];
+
+let scores = 0;
+
+
 function preload(){
-  facemesh = ml5.facemesh();
+  facemesh = ml5.facemesh({
+    flipHorizontal: true
+  });
 }
 
 function gotFace(results){
@@ -83,7 +96,6 @@ function setUpSelects(){
   faceSize = createSlider(5, 100, 20, 1);
   makeOneSelect('Face', faceEmoji, everyEmoji, selectOffset, 230,  '👩', faceActive, faceSize)
 
-
   const showVideoLabel = createP('Show Video');
   showVideoLabel.position(10, 260);
   showVideoLabel.style('color', 'white');
@@ -92,39 +104,116 @@ function setUpSelects(){
   showVideo.position(selectOffset - 10, 280);
 }
 
-
 function setup() {
   createCanvas(windowWidth, windowHeight);
   video = createCapture(VIDEO, ready);
-  setUpSelects(); 
   video.hide();
   facemesh.detectStart(video, gotFace)
+  // setUpSelects(); 
+
+  setInterval(addNewFood, 1500);
 }
 
+function addNewFood() {
+  const newFood = foodChoices[Math.floor(Math.random() * foodChoices.length)];
+  let y = Math.random() * windowHeight;
+  
+  const lineLength = Math.floor(Math.random() * 50) + 25;
+
+  
+  for (let i = 0; i < lineLength; i++) {
+    const factor = .5 - Math.random();
+    y = y + (factor * 25);
+    foods.push({
+      y: y,
+      x: windowWidth + (i * 10),
+      symbol: '❄️'
+    })
+  }
+}
+
+
 function draw() {
-  const radius = 10;
   if(!go){
     return;
   }
-  loadPixels();
   background(0);
 
-  if(showVideo.checked()){
-    image(video, 0, 0, windowWidth, windowHeight, 0, 0, video.width, video.height, CENTER)
+
+
+  fill(255);
+  textSize(32);
+  text(`Score: ${scores}`, 10, 30);
+
+
+  if(scores > 0 && scores % 100 === 0){
+    const newEmoji = badEmoji[Math.floor(Math.random() * badEmoji.length)];
+    leftEyeEmoji = newEmoji;
+    rightEyeEmoji = newEmoji;
   }
+  if(scores > 250) {
+    mouthEmoji = '🫦';
+  }
+  if(scores > 500) {
+    mouthEmoji = '👅';
+  }
+
+
   for (let face of faces) {
-  //   face.keypoints.forEach((kp,i) => {
-  //     const x = kp.x * (windowWidth/video.width);
-  //     const y = kp.y * (windowHeight/video.height);
-  //     console.log(`color at ${x}, ${y} is ${get(x, y)}`)
-  //     const colorAtTarget = get(x, y);
-  //     fill(colorAtTarget)
-  //     const zScaled = map(kp.z, 0, 100, .5, 1)
-  //     rect(x, y, 25 * zScaled)
-  //   })
+
+    function makeFace(){
+      textSize(60);
+      const nose = face.keypoints[5];
+      const leftEye = face.keypoints[362];
+      const rightEye = face.keypoints[133];
+      const lips = face.keypoints[13];
+
+      makeFeature(noseEmoji, [nose]);
+      makeFeature(leftEyeEmoji, [leftEye]);
+      makeFeature(rightEyeEmoji, [rightEye]);
+      makeFeature(mouthEmoji, [lips]);
+
+
+      const noseX = nose.x * (windowWidth/video.width);
+      const noseY = nose.y * (windowHeight/video.height);
+
+
+      foods.forEach((food, i) => {
+        textSize(35);
+        food.x -= 5;
+        text(food.symbol, food.x, food.y);
+
+        const distance = dist(food.x, food.y, noseX, noseY);
+        if (food.x < 0) {
+          foods.splice(i, 1);
+        }
+
+        if(distance < 35){
+          foods.splice(i, 1);
+          scores += 1;
+        }
+        
+        
+      })
+
+    }
+    // face.keypoints.forEach((kp,i) => {
+    //   const x = kp.x * (windowWidth/video.width);
+    //   const y = kp.y * (windowHeight/video.height);
+    //   // console.log(`color at ${x}, ${y} is ${get(x, y)}`)
+    //   const colorAtTarget = get(x, y);
+    //   textSize(20);
+    //   fill(266)
+    //   const zScaled = map(kp.z, 0, 100, .5, 1)
+    //   // rect(x, y, 25 * zScaled)
+    //   text(i, x, y)
+    // })
+    makeFace()
 
 
 
+
+    /**
   if(faceActive.checked()){
     textSize(faceSize.value());
     makeFeature(faceEmoji.selected(), face.keypoints)
@@ -148,13 +237,14 @@ function draw() {
     makeFeature(eyebrowEmoji.selected(), face.leftEyebrow)
     makeFeature(eyebrowEmoji.selected(), face.rightEyebrow)
   }  
-      function makeFeature(emoji, feature){
-        feature.forEach((p) => {
-          const x = p.x * (windowWidth/video.width);
-          const y = p.y * (windowHeight/video.height);
-        text(emoji, x, y)
-      })
-    }
+   */
+  function makeFeature(emoji, feature){
+    feature.forEach((p) => {
+      const x = p.x * (windowWidth/video.width);
+      const y = p.y * (windowHeight/video.height);
+      text(emoji, x, y)
+    })
+  }
   }
 }
 
