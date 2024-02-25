@@ -5,17 +5,27 @@ let video;
 let facemesh;
 let audio;
 let faces = []; 
+
 let leftEyeEmoji = {};
 let leftEyeActive;
+let leftEyeSize;
+
 let rightEyeEmoji = {};
 let rightEyeActive;
+let rightEyeSize;
+
 let mouthEmoji = {};
 let mouthAcitve;
+let mouthSize;
+
 let eyebrowEmoji = {};
 let eyebrowActive;
+let eyebrowSize;
+
 let faceActive;
 let faceEmoji = {};
-let emojiSize = 20;
+let faceSize;
+
 let showVideo;
 
 function preload(){
@@ -32,11 +42,12 @@ function ready(){
 }
 
 
-function makeOneSelect(label, target, options, x, y, defaultValue, active){
+function makeOneSelect(label, target, options, x, y, defaultValue, active, size){
   const labelElement = createP(label);
   labelElement.position(10, y);
   labelElement.style('color', 'white');
   labelElement.style('background-color', 'black');
+  size.position(60 + x, y + 20);
   active.position(x-10, y + 20);
   target.position(10 + x, y + 20);
   options.forEach((e) => target.option(e));
@@ -44,41 +55,33 @@ function makeOneSelect(label, target, options, x, y, defaultValue, active){
 }
 function setUpSelects(){
   fill(0)
-  console.log('setting up selects')
-  
-
 
   const selectOffset = 95;
-  // Left Eye Emoji Select
-  // const leftEyeEmojiLabel = createP('Left Eye');
-  // leftEyeEmojiLabel.position(10, 10);
-  // leftEyeEmojiLabel.style('color', 'white');
-  // leftEyeEmojiLabel.style('background-color', 'black');
-
-  // leftEyeEmoji = createSelect();
-  // leftEyeEmoji.position(selectOffset, 30);
-  // everyEmoji.forEach((e) => leftEyeEmoji.option(e));
-  // leftEyeEmoji.selected('👁');
 
   leftEyeEmoji = createSelect();
   leftEyeActive = createCheckbox('', true);
-  makeOneSelect('Left Eye', leftEyeEmoji, everyEmoji, selectOffset, 30, '👁', leftEyeActive)
+  leftEyeSize = createSlider(5, 100, 20, 1);
+  makeOneSelect('Left Eye', leftEyeEmoji, everyEmoji, selectOffset, 30, '👁', leftEyeActive, leftEyeSize)
 
   rightEyeEmoji = createSelect();
   rightEyeActive = createCheckbox('', true);
-  makeOneSelect('Right Eye', rightEyeEmoji, everyEmoji, selectOffset, 80, '👁', rightEyeActive)
+  rightEyeSize = createSlider(5, 100, 20, 1);
+  makeOneSelect('Right Eye', rightEyeEmoji, everyEmoji, selectOffset, 80, '👁', rightEyeActive, rightEyeSize)
 
   mouthEmoji = createSelect();
   mouthAcitve = createCheckbox('', true);
-  makeOneSelect('Mouth', mouthEmoji, everyEmoji, selectOffset, 130,  '👄', mouthAcitve)
+  mouthSize = createSlider(5, 100, 20, 1);
+  makeOneSelect('Mouth', mouthEmoji, everyEmoji, selectOffset, 130,  '👄', mouthAcitve, mouthSize)
 
   eyebrowEmoji = createSelect();
   eyebrowActive = createCheckbox('', true);
-  makeOneSelect('Eyebrow', eyebrowEmoji, everyEmoji, selectOffset, 180,  '✨', eyebrowActive)
+  eyebrowSize = createSlider(5, 100, 20, 1);
+  makeOneSelect('Eyebrow', eyebrowEmoji, everyEmoji, selectOffset, 180,  '✨', eyebrowActive, eyebrowSize)
 
   faceEmoji = createSelect();
   faceActive = createCheckbox('', true);
-  makeOneSelect('Face', faceEmoji, everyEmoji, selectOffset, 230,  '👩', faceActive)
+  faceSize = createSlider(5, 100, 20, 1);
+  makeOneSelect('Face', faceEmoji, everyEmoji, selectOffset, 230,  '👩', faceActive, faceSize)
 
 
   const showVideoLabel = createP('Show Video');
@@ -87,9 +90,6 @@ function setUpSelects(){
   showVideoLabel.style('background-color', 'black');
   showVideo = createCheckbox('', true);
   showVideo.position(selectOffset - 10, 280);
-
-  emojiSize = createSlider(5, 100, 20, 1);
-  emojiSize.position(10, 330);
 }
 
 
@@ -124,25 +124,27 @@ function draw() {
   //   })
 
 
-  textSize(emojiSize.value());
-
 
   if(faceActive.checked()){
+    textSize(faceSize.value());
     makeFeature(faceEmoji.selected(), face.keypoints)
   }
 
   if(leftEyeActive.checked()){
+    textSize(leftEyeSize.value());
     makeFeature(leftEyeEmoji.selected(), face.leftEye)
 
   }
   if(rightEyeActive.checked()){
+    textSize(rightEyeSize.value());
     makeFeature(rightEyeEmoji.selected(), face.rightEye)
   }
   if(mouthAcitve.checked()){
-
+    textSize(mouthSize.value());
     makeFeature(mouthEmoji.selected(), face.lips)
   } 
   if(eyebrowActive.checked()) {
+    textSize(eyebrowSize.value());
     makeFeature(eyebrowEmoji.selected(), face.leftEyebrow)
     makeFeature(eyebrowEmoji.selected(), face.rightEyebrow)
   }  
